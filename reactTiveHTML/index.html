@@ -1,0 +1,35 @@
+<!--
+ * @Author: shuyan.lu shuyan.lu@lotuscars.com.cn
+ * @Date: 2023-07-21 14:04:03
+ * @LastEditors: shuyan.lu shuyan.lu@lotuscars.com.cn
+ * @LastEditTime: 2023-07-21 14:26:19
+ * @FilePath: /vue3_learn/vue3_active/index.html
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  
+</body>
+<script>
+   //对于vue的响应式的数据的更新，采用proxy,当数据更新后页面的也会跟着去更新
+  const obj = new Proxy({text:'hello world'},{
+    set(target,prop,value){
+      target[prop] = value
+      effect()
+    }
+  })
+  setTimeout(() => {
+    obj.text = 'change obj.text 的数据变化'
+  }, 1000);
+  function effect() {
+    document.body.innerText = obj.text
+  }
+</script>
+</html>

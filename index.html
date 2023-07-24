@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  
+</body>
+<script src="dist/myvue.js"></script>
+<script>
+  console.log(MyVue)
+  const {reactive,effect} = MyVue
+  const obj = reactive({text:'hello world',info:'very good'})
+  const counter = reactive({count:0})
+  function userEffect2(params) {
+    console.log(obj.info)
+    console.log('count的数字',counter.count++)
+  }
+  function userEffect (){
+    //内部又调用了effect，这里是嵌套调用的位置
+    effect(userEffect2)
+  //  document.body.innerText = obj.text
+    console.log(obj.text)
+  }
+  // function userEffect2() {
+  //   console.log('obj.info is', obj.info)
+  // }
+  //第一次调用effect
+  effect(userEffect)
+
+
+  setTimeout(() => {
+    obj.text = 'obj.text 的数据发生变化'
+  }, 1000);
+
+</script>
+</html>

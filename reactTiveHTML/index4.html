@@ -1,0 +1,58 @@
+<!--
+ * @Author: shuyan.lu shuyan.lu@lotuscars.com.cn
+ * @Date: 2023-07-21 14:04:03
+ * @LastEditors: shuyan.lu shuyan.lu@lotuscars.com.cn
+ * @LastEditTime: 2023-07-21 15:32:22
+ * @FilePath: /vue3_learn/vue3_active/index.html
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+
+</body>
+<script>
+//这里的currentEffect的方法只能执行最后一个，所以我们需要想办法把所有的effect的方法都记录一下，所以换成list
+// 为了避免重复的收集effect我们这里使用set的方法
+  const bucket = new Set()
+  const obj = reactive({ text: 'hello world', info: 'this is a good learn' })
+  function useEffect() {
+    document.body.innerText = obj.text
+  }
+  function useEffect2() {
+    console.log(obj.info)
+  }
+  effect(useEffect)
+  effect(useEffect2)
+  effect(useEffect2)
+  setTimeout(() => {
+    obj.text = 'change obj.text 的数据变化'
+  }, 1000);
+  
+  function effect(fn) { //副作用函数
+    fn()
+    bucket.add(fn)
+  }
+  //响应式的处理
+  function reactive(target) {
+    return new Proxy(target, {
+      set(target, prop, value) {
+        target[prop] = value
+        console.log(bucket)
+        for(let fn of bucket) fn()
+      }
+    })
+  }
+//这里还会有一个问题就是‘for(let fn of bucket) fn()’这里的便利会把所有的存在bucket这里面的fn的方法都去执行一遍
+//针对上面的问题，我们可以给每一个fn的方法添加一个唯一的tag
+</script>
+
+</html>

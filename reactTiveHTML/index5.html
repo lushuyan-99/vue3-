@@ -1,0 +1,95 @@
+<!--
+ * @Author: shuyan.lu shuyan.lu@lotuscars.com.cn
+ * @Date: 2023-07-21 14:04:03
+ * @LastEditors: shuyan.lu shuyan.lu@lotuscars.com.cn
+ * @LastEditTime: 2023-07-21 17:49:39
+ * @FilePath: /vue3_learn/vue3_active/index.html
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+
+</body>
+<script>
+
+  //这里我们要记录一下当前的副作用函数是针对哪一个taget的prop的，所以这里提出的解决方法就是使用map
+  // map中的prop就是obj，value就是副作用函数，这里考虑到一个对象的某个元素可能会有多个副作用函数，所以依旧使用map
+  //但是该如何去建立这样的关系呢，我们发现每次执行作用域函数的时候都会有obj.XX这样就会出发get的方法，因此这里我们添加一下get的方法
+  const bucket = new WeakMap()
+  let currentEffect = null
+  const obj = reactive({ text: 'hello world', info: 'this is a good learn' })
+  function useEffect() {
+    document.body.innerText = obj.text
+  }
+  function useEffect2() {
+    console.log(obj.info)
+  }
+  effect(useEffect)
+  effect(useEffect2)
+  effect(useEffect2)
+  setTimeout(() => {
+    obj.text = 'change obj.text 的数据变化'
+  }, 1000);
+  
+  function effect(fn) { //副作用函数
+    currentEffect = fn //这里的 currentEffect只是中间变量
+    fn()
+    currentEffect = null
+    // bucket.add(fn)
+  }
+  //响应式的处理
+  function reactive(target) {
+    return new Proxy(target, {
+      set:(target, prop, value)=>{
+        console.log(target)
+        console.log(target[prop])
+        target[prop] = value
+        //这里的执行副作用函数就是一层层的往下取，然后去执行
+        let ps = bucket.get(target)
+        if (!ps) return
+        let effects = ps.get(prop)
+        if(!effects)return 
+        for(let fn of effects) fn()
+      },
+      get:(target,prop)=>{
+        console.log(target,prop)
+        if (currentEffect) {//如果有副作用函数的时候，就要去收集副作用函数
+          let ps = bucket.get(target)
+          console.log(ps)
+          if (!ps) {
+            ps = new Map()
+            bucket.set(target,ps)
+          }
+          let effects = ps.get(prop)
+          if (!effects) {
+            effects = new Set()
+            ps.set(prop,effects)
+          }
+          effects.add(currentEffect)
+        }
+        console.log(target)
+        console.log(target[prop])
+        return target[prop]
+      }
+    })
+  }
+
+
+//这里存在一个问题就是当前的对象obj被垃圾回收了，比如obj = null之后，其代理的对象target安说应该也被垃圾回收掉
+//但是这里的全局函数bucket收集了这个响应式的对象target，本来应该被回收掉的现在不能被回收了，这样就会造成内存泄漏
+//这里为了解决内存泄漏的问题我们采用weakmap
+//weakMap和map的区别
+//weakmap是不容易发生内存的泄漏的，一旦被垃圾回收机制回收了，对应的key和value就获取不到了
+// WeakMap的键值对要要是引用类型，不是简单的数据类型
+</script>
+
+</html>

@@ -1,0 +1,51 @@
+<!--
+ * @Author: shuyan.lu shuyan.lu@lotuscars.com.cn
+ * @Date: 2023-07-21 14:04:03
+ * @LastEditors: shuyan.lu shuyan.lu@lotuscars.com.cn
+ * @LastEditTime: 2023-07-21 14:51:54
+ * @FilePath: /vue3_learn/vue3_active/index.html
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  
+</body>
+<script>
+// 这一步我们把项目来整理一下，把proxy提取出来封装成一个函数
+
+//定义一个全局变量，然后将副作用函数放在全局变量上面，当数据发生变化的时候判断是不是全局变量上面有副作用函数，有的话就会改变没有则不会发生改变
+  
+let currentEffect = null
+const obj = reactive({text:'hello world'})
+  effect()
+  setTimeout(() => {
+    obj.text = 'change obj.text 的数据变化'
+  }, 1000);
+  function effect() { //副作用函数
+    document.body.innerText = obj.text
+    currentEffect = effect
+  }
+  //响应式的处理
+  function reactive(target) {
+   return new Proxy(target,{
+    set(target,prop,value){
+      target[prop] = value
+      // effect()
+      if (currentEffect) {
+        currentEffect()
+      }
+    }
+   })
+  }
+
+  //这里会有一些不方便的地方，就是我们需要把currentEffect这个变量给爆露出去，并且需要跟用户协商就是
+  // 在执行副作用函数的时候需要把副作用函数复制给currentEffect才能执行响应式，所以后面针对这块开始优化
+</script>
+</html>
